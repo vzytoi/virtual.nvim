@@ -4,6 +4,8 @@ local config = {}
 local ns = vim.api.nvim_create_namespace("virtual.nvim")
 local icon = "■"
 
+vim.g.nvim_virtual_enable = true
+
 local fmt = function(diagnostics)
     local colors = {
         "Error",
@@ -106,8 +108,24 @@ local autocmd = function()
     -- si d'autres autocommandes sont ajoutées, elles doivent être
     -- justifiée pour des questions de légèreté (:
 
-    vim.api.nvim_create_autocmd("CursorMoved", {
+    vim.api.nvim_create_autocmd({
+
+        -- Prend en charge les changements de lignes.
+        "CursorMoved",
+
+        -- Lorsque "x" est utilisé par example, les diagnostics
+        -- peuvent changer, pour autant CursorMoved n'est pas déclanché
+        "CursorHold",
+
+        -- Pour les quickfix par exemple
+        "DiagnosticChanged"
+
+    }, {
         callback = function()
+            if not vim.g.nvim_virtual_enable then
+                return
+            end
+
             local ln = vim.fn.line('.') - 1
             local content = get()
 
