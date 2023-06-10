@@ -18,7 +18,6 @@ local fmt = function(diagnostics)
     local max
 
     for c, di in pairs(diagnostics) do
-
         -- je veux que le méssage soit de la couleur
         -- de la sévérité la plus élevée.
 
@@ -43,7 +42,6 @@ local fmt = function(diagnostics)
 end
 
 local print = function(ln, content)
-
     local line_content = vim.api.nvim_buf_get_lines(
         0, ln, ln + 1, false
     )
@@ -57,11 +55,9 @@ local print = function(ln, content)
     vim.api.nvim_buf_set_extmark(0, ns, ln, col, {
         virt_text = fmt(content)
     })
-
 end
 
 local clear = function()
-
     local buflst = vim.tbl_filter(function(nr)
         return vim.api.nvim_buf_is_loaded(nr)
     end, vim.api.nvim_list_bufs())
@@ -104,14 +100,15 @@ end
 
 
 local autocmd = function()
-
     -- si d'autres autocommandes sont ajoutées, elles doivent être
     -- justifiée pour des questions de légèreté (:
+
+    local grp = vim.api.nvim_create_augroup("virtual", { clear = true })
 
     vim.api.nvim_create_autocmd({
 
         -- Prend en charge les changements de lignes.
-        "CursorMoved",
+        -- CursorMoved",
 
         -- Lorsque "x" est utilisé par example, les diagnostics
         -- peuvent changer, pour autant CursorMoved n'est pas déclanché
@@ -122,7 +119,9 @@ local autocmd = function()
 
     }, {
         callback = function()
-            if not vim.g.nvim_virtual_enable then
+            local m = vim.api.nvim_get_mode().mode
+
+            if (not vim.g.nvim_virtual_enable) or m == "i" then
                 return
             end
 
@@ -141,13 +140,12 @@ local autocmd = function()
 
             print(ln, content)
         end,
+        group = grp
     })
-
 end
 
 
 M.grab = function(tograb)
-
     local sev = {
         ERROR = 1,
         WARN = 2,
@@ -156,7 +154,6 @@ M.grab = function(tograb)
     }
 
     for _, v in ipairs(vim.tbl_keys(sev)) do
-
         -- la fonction grab est appellée sur les min..max sur lesquel
         -- afficher les lignes virtuel. On cherche donc à exclure ces lignes.
 
